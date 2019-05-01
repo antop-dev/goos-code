@@ -1,0 +1,30 @@
+language: java
+dist: trusty
+addons:
+  sonarcloud:
+    organization: antop-dev-github
+jdk:
+  - openjdk8
+branches:
+  only:
+    - master
+cache:
+  directories:
+    - $HOME/.m2
+before_install:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
+  - "sleep 3"
+install:
+  - mvn test-compile -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+script:
+  # - xvfb-run --server-args="-screen 0 1024x768x24" mvn clean test jacoco:report
+  - mvn clean test jacoco:report
+after_success:
+  - mvn sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.projectKey=$SONAR_PROJECT_KEY
+  - mvn coveralls:report -DrepoToken=$COVERALLS_REPO_TOKEN
+notifications:
+  email: false
+  slack:
+    secure: bR03N3zB1Y4x9XXs/3mspEJscLotmy2e/jQO4jalFARJumIqncCk+sOcpJ4rxwdXeGiQcWXml4+c393R284RMtDazndtEy2l+UYGOaDdL6F0FXTBRib+SxzSFdjTOBMn+vcLfARtoF/AOY9swcyMKfHzaLLDaFoLewXANVM/stX3wbuodCqQt8IZ1zw7YPsjYYzDcnqoc0ux0PfgK687qqCrxoyJPL2MD0/F1dwT6q1uDgBtg9jW0KjI2aDxa8+26to20vN7yKT049OTD817FXBponAV9Q6tTo7U/z8e2k8lbN1AIv5JS9nfNux2bQNmQa8NdAt03uCGObRB15PuTMRplEPpVr0+/yKFLxcNcww7qAFsHYL/C8rQpr747MZKdin7qj4KyKCxo+TpdmdrKBWx1c7LFvYEc+3fjQwCknYnPBOIDIEIv3c1DMkWYmMr+utFntakAk0JYaINdyQmfbHH7Kwh59vUPytN5qe6Xp/QYFYCWyGJcESK+kbEYYGCFBd6ldV4c9rYKooF3+lrJ6Z/3XgQfjtzwPu6B0/X/W1gafQtH+J20CcJ08ZbPpk6JIB/pGggsR+mNctogv6Jx7gkQY3DtiwaPdtn+zaGNTP7OOjkDXAqgsRkn/+1A3NClfWLgmpGorKS4fR1njX/COv4JQsSmyRtWU9cEgf8/qY=
